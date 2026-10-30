@@ -203,7 +203,7 @@ const API_URL = "PASTE_WEB_APP_URL_HERE";
 /* ======================================================================= */
 const SNAPSHOT_DATE = "Oct 30, 2026";
 const COUNTY_URL = "https://gis.latah.id.us/arcgis/rest/services/Parcels1/MapServer/0/query";
-const BOUNDS = [[46.7270,-117.0040],[46.7350,-116.9965]];
+const BOUNDS = [[46.7270,-117.0040],[46.7373,-116.9965]];
 const COMMERCIAL = new Set(["OF","RE","RT","MX","BK","SM","GR","GS","WH","RS","MO","MS"]);
 const USE_LABEL = {OF:"Office",RE:"Retail",RT:"Restaurant",MX:"Mixed use",BK:"Bank",GS:"Service station",WH:"Warehouse",AP:"Apartments",C:"Exempt"};
 const STAGES = ["Watching","Researching","Owner contacted","Owner interested","Analyzing deal","Offer made","Under contract","Acquired","Passed"];
@@ -236,7 +236,7 @@ function cssv(n){ return getComputedStyle(document.documentElement).getPropertyV
 
 // ---------- map ----------
 const map = L.map("map", {preferCanvas:true, zoomSnap:0.25, minZoom:15.5, maxZoom:21, maxBounds:L.latLngBounds(BOUNDS).pad(0.6), attributionControl:false, zoomControl:true});
-map.fitBounds([[46.7292,-117.0022],[46.7335,-116.9985]]);
+map.fitBounds([[46.7292,-117.0022],[46.7360,-116.9985]]);
 const aerial = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {maxNativeZoom:19, maxZoom:21, attribution:"Imagery © Esri, Maxar, Earthstar Geographics"}).addTo(map);
 L.control.attribution({prefix:false, position:"bottomright"}).addTo(map);
 const parcelLayer = L.layerGroup().addTo(map);
@@ -372,7 +372,7 @@ function renderParcel(){
     pane.innerHTML = modeBanner() + `<div class="empty"><h2>Pick a parcel</h2>
       <p>Click any lot on the map, or search by address or owner. Gold outlines mark the ${n} parcels the county codes as commercial use.</p>
       <p>Each parcel shows the county’s ownership, assessed value and tax record. Add it to the watchlist to track lease rates, tenants, contacts and the group’s feasibility score.</p>
-      <p class="note-src">${liveCounty ? "County data loaded live from Latah County GIS." : "County data snapshot from " + SNAPSHOT_DATE + "."} ${parcels.length} parcels between 1st St and 8th St.</p></div>`;
+      <p class="note-src">${liveCounty ? "County data loaded live from Latah County GIS." : "County data snapshot from " + SNAPSHOT_DATE + "."} ${parcels.length} parcels between D St and 8th St.</p></div>`;
     return;
   }
   const p = selected, t = props[p.id], d = draft, sc = scoreOf(d || t);
@@ -667,7 +667,8 @@ async function loadCountyLive(){
   if (!j.features || !j.features.length) throw new Error("no features");
   return j.features.map(f => { const o = {};
     for (const [k,v] of Object.entries(flds)){ let x = f.attributes[v]; if (typeof x === "string") x = x.replace(/\s+/g," ").trim(); if (x !== null && x !== "" && x !== 0) o[k] = x; }
-    o.g = f.geometry.rings.map(r => r.map(([x,y]) => [Math.round((x+117)*1e5), Math.round((y-46)*1e5)])); return o; });
+    o.g = f.geometry.rings.map(r => r.map(([x,y]) => [Math.round((x+117)*1e5), Math.round((y-46)*1e5)])); return o; })
+    .filter(o => o.id).reduce((acc, o) => { const prev = acc.find(x => x.id === o.id); if (prev) prev.g = prev.g.concat(o.g); else acc.push(o); return acc; }, []);
 }
 
 // ---------- boot ----------
